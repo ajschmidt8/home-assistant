@@ -28,10 +28,11 @@ from homeassistant.setup import async_when_setup
 
 from .const import (
     ATTR_MANUFACTURER,
-    CONF_CAMERA,
     CONF_EVENTS,
     CONF_MODEL,
+    CONF_STREAM_PROFILE,
     DEFAULT_EVENTS,
+    DEFAULT_STREAM_PROFILE,
     DEFAULT_TRIGGER_TIME,
     DOMAIN as AXIS_DOMAIN,
     LOGGER,
@@ -76,15 +77,16 @@ class AxisNetworkDevice:
         return self.config_entry.unique_id
 
     @property
-    def option_camera(self):
-        """Config entry option defining if camera should be used."""
-        supported_formats = self.api.vapix.params.image_format
-        return self.config_entry.options.get(CONF_CAMERA, bool(supported_formats))
-
-    @property
     def option_events(self):
         """Config entry option defining if platforms based on events should be created."""
         return self.config_entry.options.get(CONF_EVENTS, DEFAULT_EVENTS)
+
+    @property
+    def option_stream_profile(self):
+        """Config entry option defining what stream profile camera platform should use."""
+        return self.config_entry.options.get(
+            CONF_STREAM_PROFILE, DEFAULT_STREAM_PROFILE
+        )
 
     @property
     def option_trigger_time(self):
