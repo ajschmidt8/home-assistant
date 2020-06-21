@@ -1,0 +1,24 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Choose AlarmDecoder Protocol",
+        "data": {
+          "protocol": "Protocol"
+        }
+      },
+      "protocol_settings": {
+        "title": "Configure connection settings",
+        "data": {
+          "host": "[%key:common::config_flow::data::host%]",
+          "port": "[%key:common::config_flow::data::port%]",
+          "baudrate": "Device Baud Rate",
+          "path": "Device Path"
+        }
+      }
+    },
+    "error": {
+      "service_unavailable": "[%key:common::config_flow::error::cannot_connect%]"
+    }
+  }
+}
