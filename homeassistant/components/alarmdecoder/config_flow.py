@@ -1,6 +1,16 @@
 """Config flow for AlarmDecoder."""
-import voluptuous as vol
 import socket
+
+from adext import AdExt
+from alarmdecoder.devices import SerialDevice, SocketDevice
+from alarmdecoder.util import NoDeviceError
+import voluptuous as vol
+
+from homeassistant import config_entries
+from homeassistant.const import CONF_HOST, CONF_PORT, CONF_PROTOCOL
+from homeassistant.core import callback
+import homeassistant.helpers.config_validation as cv
+
 from .const import (
     CONF_DEVICE_BAUD,
     CONF_DEVICE_PATH,
@@ -11,13 +21,6 @@ from .const import (
     PROTOCOL_SERIAL,
     PROTOCOL_SOCKET,
 )
-from alarmdecoder.devices import SocketDevice, SerialDevice
-from alarmdecoder.util import NoDeviceError
-from adext import AdExt
-import homeassistant.helpers.config_validation as cv
-from homeassistant.const import CONF_HOST, CONF_PORT, CONF_PROTOCOL
-from homeassistant.core import callback
-from homeassistant import config_entries
 
 
 class AlarmDecoderFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
