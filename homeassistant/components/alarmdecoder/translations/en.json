@@ -7,7 +7,7 @@
           "protocol": "Protocol"
         }
       },
-      "protocol_settings": {
+      "protocol": {
         "title": "Configure connection settings",
         "data": {
           "host": "Host",
@@ -19,6 +19,32 @@
     },
     "error": {
       "service_unavailable": "Failed to connect"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure AlarmDecoder",
+        "description": "What would you like to edit?",
+        "data": {
+          "edit_select": "Edit"
+        }
+      },
+      "settings": {
+        "title": "Configure AlarmDecoder",
+        "data": {
+          "auto_bypass": "Auto Bypass on Arm",
+          "code_arm_required": "Code Required for Arming",
+          "alt_night_mode": "Alternative Night Mode"
+        }
+      },
+      "zones": {
+        "title": "Configure AlarmDecoder",
+        "description": "Choose an action. Select an existing zone to edit or remove it.",
+        "data": {
+          "action": "Action"
+        }
+      }
     }
   }
 }

@@ -12,6 +12,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, EVENT_HOMEASSISTANT_STOP
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.discovery import load_platform
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.util import dt as dt_util
 
@@ -231,5 +232,12 @@ def setup(hass, config):
 
 async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool:
     _LOGGER.error("we made it here")
-    _LOGGER.error("entry: ", entry.as_dict())
+    _LOGGER.error("entry: %s", entry.as_dict())
+    entry.add_update_listener(_update_listener)
     return True
+
+
+async def _update_listener(hass: HomeAssistantType, entry: ConfigEntry):
+    """Handle options update."""
+    print("updated! :", entry.as_dict())
+    # async_dispatcher_send(hass, f"-{entry.unique_id}", entry.options)
