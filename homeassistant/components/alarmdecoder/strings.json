@@ -38,13 +38,25 @@
           "alt_night_mode": "Alternative Night Mode"
         }
       },
-      "zones": {
+      "zone": {
         "title": "Configure AlarmDecoder",
-        "description": "Choose an action. Select an existing zone to edit or remove it.",
+        "description": "Enter details to add/update a zone. To delete a zone, enter the zone number and leave Zone Name blank.",
         "data": {
-          "action": "Action"
+          "number": "Zone Number",
+          "name": "Zone Name",
+          "type": "Zone Type",
+          "rfid": "RF Serial",
+          "loop": "RF Loop",
+          "relayaddr": "Relay Address",
+          "relaychan": "Relay Channel"
         }
       }
+    },
+    "error": {
+      "relay_inclusive": "Relay Address and Relay Channel are codependent and must be included together.",
+      "int": "The field below must be an integer.",
+      "loop_rfid": "RF Loop cannot be used without RF Serial.",
+      "loop_range": "RF Loop must be an integer between 1 and 4."
     }
   }
 }
