@@ -19,7 +19,8 @@
     },
     "error": {
       "service_unavailable": "[%key:common::config_flow::error::cannot_connect%]"
-    }
+    },
+    "create_entry": { "default": "Successfully connected to AlarmDecoder." }
   },
   "options": {
     "step": {
@@ -40,7 +41,7 @@
       },
       "zone": {
         "title": "Configure AlarmDecoder",
-        "description": "Enter details to add/update a zone. To delete a zone, enter the zone number and leave Zone Name blank.",
+        "description": "Enter details to add/update a zone. To delete a zone, enter the zone number and leave Zone Name blank. Restart Home Assistant for zone changes to take effect.",
         "data": {
           "number": "Zone Number",
           "name": "Zone Name",

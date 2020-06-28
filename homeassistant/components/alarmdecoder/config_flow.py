@@ -10,9 +10,11 @@ from homeassistant import config_entries
 from homeassistant.components.binary_sensor import DEVICE_CLASSES
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_PROTOCOL
 from homeassistant.core import callback
-import homeassistant.helpers.config_validation as cv
 
-from .const import (
+from .const import (  # pylint: disable=unused-import
+    CONF_ALT_NIGHT_MODE,
+    CONF_AUTO_BYPASS,
+    CONF_CODE_ARM_REQUIRED,
     CONF_DEVICE_BAUD,
     CONF_DEVICE_PATH,
     CONF_RELAY_ADDR,
@@ -22,15 +24,32 @@ from .const import (
     CONF_ZONE_NUMBER,
     CONF_ZONE_RFID,
     CONF_ZONE_TYPE,
+    DEFAULT_ALT_NIGHT_MODE,
+    DEFAULT_AUTO_BYPASS,
+    DEFAULT_CODE_ARM_REQUIRED,
     DEFAULT_DEVICE_BAUD,
     DEFAULT_DEVICE_HOST,
     DEFAULT_DEVICE_PATH,
     DEFAULT_DEVICE_PORT,
     DEFAULT_ZONE_TYPE,
     DOMAIN,
+    OPTIONS_ARM,
+    OPTIONS_ZONES,
     PROTOCOL_SERIAL,
     PROTOCOL_SOCKET,
 )
+
+EDIT_KEY = "edit_selection"
+EDIT_ZONES = "Zones"
+EDIT_SETTINGS = "Arming Settings"
+
+DEFAULT_ARM_OPTIONS = {
+    CONF_ALT_NIGHT_MODE: DEFAULT_ALT_NIGHT_MODE,
+    CONF_AUTO_BYPASS: DEFAULT_AUTO_BYPASS,
+    CONF_CODE_ARM_REQUIRED: DEFAULT_CODE_ARM_REQUIRED,
+}
+
+DEFAULT_ZONES = {}
 
 
 class AlarmDecoderFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -39,14 +58,14 @@ class AlarmDecoderFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     def __init__(self):
-        """Initialize AlarmDecoder ConfigFlow"""
+        """Initialize AlarmDecoder ConfigFlow."""
         self.protocol = None
         self.network_discovered = False
 
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
-        """Get the options flow for this handler."""
+        """Get the options flow for AlarmDecoder."""
         return AlarmDecoderOptionsFlowHandler(config_entry)
 
     async def async_step_user(self, user_input=None):
@@ -73,17 +92,19 @@ class AlarmDecoderFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_protocol(self, user_input=None):
+        """Handle AlarmDecoder protocol setup."""
         errors = {}
         if user_input is not None:
+            connection = {}
             if self.protocol == PROTOCOL_SOCKET:
-                baud = 0
-                host = user_input[CONF_HOST]
-                port = user_input[CONF_PORT]
+                baud = connection[CONF_DEVICE_BAUD] = DEFAULT_DEVICE_BAUD
+                host = connection[CONF_HOST] = user_input[CONF_HOST]
+                port = connection[CONF_PORT] = user_input[CONF_PORT]
                 title = f"{host}:{port}"
                 device = SocketDevice(interface=(host, port))
             if self.protocol == PROTOCOL_SERIAL:
-                path = user_input[CONF_DEVICE_PATH]
-                baud = user_input[CONF_DEVICE_BAUD]
+                path = connection[CONF_DEVICE_PATH] = user_input[CONF_DEVICE_PATH]
+                baud = connection[CONF_DEVICE_BAUD] = user_input[CONF_DEVICE_BAUD]
                 title = path
                 device = SerialDevice(interface=path)
 
@@ -91,7 +112,9 @@ class AlarmDecoderFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 with controller:
                     controller.open(baudrate=baud)
-                return self.async_create_entry(title=title, data={})
+                return self.async_create_entry(
+                    title=title, data={CONF_PROTOCOL: self.protocol, **connection}
+                )
             except NoDeviceError:
                 errors["base"] = "service_unavailable"
 
@@ -122,26 +145,23 @@ class AlarmDecoderOptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry):
         """Initialize AlarmDecoder options flow."""
-        self.arm_options = config_entry.options.get(
-            "arm_options",
-            {"code_arm_required": True, "auto_bypass": False, "alt_night_mode": False,},
-        )
-        self.zones = config_entry.options.get("zones", {})
+        self.arm_options = config_entry.options.get(OPTIONS_ARM, DEFAULT_ARM_OPTIONS,)
+        self.zone_options = config_entry.options.get(OPTIONS_ZONES, DEFAULT_ZONES)
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
         if user_input is not None:
-            if user_input["edit_select"] == "Settings":
+            if user_input[EDIT_KEY] == EDIT_SETTINGS:
                 return await self.async_step_settings()
-            if user_input["edit_select"] == "Zones":
+            if user_input[EDIT_KEY] == EDIT_ZONES:
                 return await self.async_step_zone()
 
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
-                    vol.Required("edit_select", default="Settings"): vol.In(
-                        ["Settings", "Zones"]
+                    vol.Required(EDIT_KEY, default=EDIT_SETTINGS): vol.In(
+                        [EDIT_SETTINGS, EDIT_ZONES]
                     )
                 },
             ),
@@ -151,7 +171,8 @@ class AlarmDecoderOptionsFlowHandler(config_entries.OptionsFlow):
         """Manage the settings."""
         if user_input is not None:
             return self.async_create_entry(
-                title="", data={"arm_options": user_input, "zones": self.zones}
+                title="",
+                data={OPTIONS_ARM: user_input, OPTIONS_ZONES: self.zone_options},
             )
 
         return self.async_show_form(
@@ -159,14 +180,15 @@ class AlarmDecoderOptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=vol.Schema(
                 {
                     vol.Optional(
-                        "alt_night_mode", default=self.arm_options["alt_night_mode"]
+                        CONF_ALT_NIGHT_MODE,
+                        default=self.arm_options[CONF_ALT_NIGHT_MODE],
                     ): bool,
                     vol.Optional(
-                        "auto_bypass", default=self.arm_options["auto_bypass"]
+                        CONF_AUTO_BYPASS, default=self.arm_options[CONF_AUTO_BYPASS]
                     ): bool,
                     vol.Optional(
-                        "code_arm_required",
-                        default=self.arm_options["code_arm_required"],
+                        CONF_CODE_ARM_REQUIRED,
+                        default=self.arm_options[CONF_CODE_ARM_REQUIRED],
                     ): bool,
                 },
             ),
@@ -177,14 +199,14 @@ class AlarmDecoderOptionsFlowHandler(config_entries.OptionsFlow):
         errors = self._validate_zone_input(user_input)
 
         if user_input is not None and not errors:
-            # Add Inclusive backend validation here
-            zone_settings = self.zones.copy()
+            zone_options = self.zone_options.copy()
             zone_id = str(user_input[CONF_ZONE_NUMBER])
-            zone_settings[zone_id] = user_input
-            if CONF_ZONE_NAME not in zone_settings[zone_id]:
-                zone_settings.pop(zone_id)
+            zone_options[zone_id] = user_input
+            if CONF_ZONE_NAME not in zone_options[zone_id]:
+                zone_options.pop(zone_id)
             return self.async_create_entry(
-                title="", data={"arm_options": self.arm_options, "zones": zone_settings}
+                title="",
+                data={OPTIONS_ARM: self.arm_options, OPTIONS_ZONES: zone_options},
             )
 
         return self.async_show_form(
