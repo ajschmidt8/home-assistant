@@ -12,6 +12,7 @@ from homeassistant.components.alarm_control_panel.const import (
     SUPPORT_ALARM_ARM_HOME,
     SUPPORT_ALARM_ARM_NIGHT,
 )
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_CODE,
     STATE_ALARM_ARMED_AWAY,
@@ -21,14 +22,22 @@ from homeassistant.const import (
     STATE_ALARM_TRIGGERED,
 )
 import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.typing import HomeAssistantType
 
 from . import (
-    CONF_AUTO_BYPASS,
-    CONF_CODE_ARM_REQUIRED,
     DATA_AD,
     DOMAIN,
     SIGNAL_PANEL_MESSAGE,
 )
+
+from .const import (
+    CONF_AUTO_BYPASS,
+    CONF_ALT_NIGHT_MODE,
+    CONF_CODE_ARM_REQUIRED,
+    DEFAULT_ARM_OPTIONS,
+    OPTIONS_ARM,
+)
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,45 +49,50 @@ ATTR_KEYPRESS = "keypress"
 ALARM_KEYPRESS_SCHEMA = vol.Schema({vol.Required(ATTR_KEYPRESS): cv.string})
 
 
-def setup_platform(hass, config, add_entities, discovery_info=None):
+async def async_setup_entry(
+    hass: HomeAssistantType, entry: ConfigEntry, async_add_entities
+):
     """Set up for AlarmDecoder alarm panels."""
-    if discovery_info is None:
-        return
+    print("ENTRY!", entry.as_dict())
+    options = entry.options
+    arm_options = options.get(OPTIONS_ARM, DEFAULT_ARM_OPTIONS)
 
-    auto_bypass = discovery_info[CONF_AUTO_BYPASS]
-    code_arm_required = discovery_info[CONF_CODE_ARM_REQUIRED]
-    entity = AlarmDecoderAlarmPanel(auto_bypass, code_arm_required)
-    add_entities([entity])
-
-    def alarm_toggle_chime_handler(service):
-        """Register toggle chime handler."""
-        code = service.data.get(ATTR_CODE)
-        entity.alarm_toggle_chime(code)
-
-    hass.services.register(
-        DOMAIN,
-        SERVICE_ALARM_TOGGLE_CHIME,
-        alarm_toggle_chime_handler,
-        schema=ALARM_TOGGLE_CHIME_SCHEMA,
+    entity = AlarmDecoderAlarmPanel(
+        auto_bypass=arm_options[CONF_AUTO_BYPASS],
+        code_arm_required=arm_options[CONF_CODE_ARM_REQUIRED],
+        alt_night_mode=arm_options[CONF_ALT_NIGHT_MODE],
     )
+    async_add_entities([entity])
 
-    def alarm_keypress_handler(service):
-        """Register keypress handler."""
-        keypress = service.data[ATTR_KEYPRESS]
-        entity.alarm_keypress(keypress)
+    # def alarm_toggle_chime_handler(service):
+    #     """Register toggle chime handler."""
+    #     code = service.data.get(ATTR_CODE)
+    #     entity.alarm_toggle_chime(code)
 
-    hass.services.register(
-        DOMAIN,
-        SERVICE_ALARM_KEYPRESS,
-        alarm_keypress_handler,
-        schema=ALARM_KEYPRESS_SCHEMA,
-    )
+    # hass.services.register(
+    #     DOMAIN,
+    #     SERVICE_ALARM_TOGGLE_CHIME,
+    #     alarm_toggle_chime_handler,
+    #     schema=ALARM_TOGGLE_CHIME_SCHEMA,
+    # )
+
+    # def alarm_keypress_handler(service):
+    #     """Register keypress handler."""
+    #     keypress = service.data[ATTR_KEYPRESS]
+    #     entity.alarm_keypress(keypress)
+
+    # hass.services.register(
+    #     DOMAIN,
+    #     SERVICE_ALARM_KEYPRESS,
+    #     alarm_keypress_handler,
+    #     schema=ALARM_KEYPRESS_SCHEMA,
+    # )
 
 
 class AlarmDecoderAlarmPanel(AlarmControlPanelEntity):
     """Representation of an AlarmDecoder-based alarm panel."""
 
-    def __init__(self, auto_bypass, code_arm_required):
+    def __init__(self, auto_bypass, code_arm_required, alt_night_mode):
         """Initialize the alarm panel."""
         self._display = ""
         self._name = "Alarm Panel"
@@ -94,6 +108,7 @@ class AlarmDecoderAlarmPanel(AlarmControlPanelEntity):
         self._zone_bypassed = None
         self._auto_bypass = auto_bypass
         self._code_arm_required = code_arm_required
+        self._alt_night_mode = alt_night_mode
 
     async def async_added_to_hass(self):
         """Register callbacks."""
@@ -200,6 +215,7 @@ class AlarmDecoderAlarmPanel(AlarmControlPanelEntity):
         self.hass.data[DATA_AD].arm_night(
             code=code,
             code_arm_required=self._code_arm_required,
+            alt_night_mode=self._alt_night_mode,
             auto_bypass=self._auto_bypass,
         )
 

@@ -25,12 +25,14 @@ from .const import (  # pylint: disable=unused-import
     CONF_ZONE_RFID,
     CONF_ZONE_TYPE,
     DEFAULT_ALT_NIGHT_MODE,
+    DEFAULT_ARM_OPTIONS,
     DEFAULT_AUTO_BYPASS,
     DEFAULT_CODE_ARM_REQUIRED,
     DEFAULT_DEVICE_BAUD,
     DEFAULT_DEVICE_HOST,
     DEFAULT_DEVICE_PATH,
     DEFAULT_DEVICE_PORT,
+    DEFAULT_ZONES_OPTIONS,
     DEFAULT_ZONE_TYPE,
     DOMAIN,
     OPTIONS_ARM,
@@ -42,14 +44,6 @@ from .const import (  # pylint: disable=unused-import
 EDIT_KEY = "edit_selection"
 EDIT_ZONES = "Zones"
 EDIT_SETTINGS = "Arming Settings"
-
-DEFAULT_ARM_OPTIONS = {
-    CONF_ALT_NIGHT_MODE: DEFAULT_ALT_NIGHT_MODE,
-    CONF_AUTO_BYPASS: DEFAULT_AUTO_BYPASS,
-    CONF_CODE_ARM_REQUIRED: DEFAULT_CODE_ARM_REQUIRED,
-}
-
-DEFAULT_ZONES = {}
 
 
 class AlarmDecoderFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -146,7 +140,9 @@ class AlarmDecoderOptionsFlowHandler(config_entries.OptionsFlow):
     def __init__(self, config_entry: config_entries.ConfigEntry):
         """Initialize AlarmDecoder options flow."""
         self.arm_options = config_entry.options.get(OPTIONS_ARM, DEFAULT_ARM_OPTIONS,)
-        self.zone_options = config_entry.options.get(OPTIONS_ZONES, DEFAULT_ZONES)
+        self.zone_options = config_entry.options.get(
+            OPTIONS_ZONES, DEFAULT_ZONES_OPTIONS
+        )
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
