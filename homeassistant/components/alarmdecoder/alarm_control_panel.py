@@ -15,38 +15,44 @@ from homeassistant.components.alarm_control_panel.const import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_CODE,
+    ATTR_ENTITY_ID,
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
     STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
     STATE_ALARM_TRIGGERED,
 )
+from homeassistant.helpers import entity_platform
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import (
-    DATA_AD,
-    DOMAIN,
-    SIGNAL_PANEL_MESSAGE,
-)
-
+from . import DATA_AD, DOMAIN, SIGNAL_PANEL_MESSAGE
 from .const import (
-    CONF_AUTO_BYPASS,
     CONF_ALT_NIGHT_MODE,
+    CONF_AUTO_BYPASS,
     CONF_CODE_ARM_REQUIRED,
     DEFAULT_ARM_OPTIONS,
     OPTIONS_ARM,
 )
 
-
 _LOGGER = logging.getLogger(__name__)
 
 SERVICE_ALARM_TOGGLE_CHIME = "alarm_toggle_chime"
-ALARM_TOGGLE_CHIME_SCHEMA = vol.Schema({vol.Required(ATTR_CODE): cv.string})
+ALARM_TOGGLE_CHIME_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID, default=[]): cv.entity_ids,
+        vol.Required(ATTR_CODE): cv.string,
+    }
+)
 
 SERVICE_ALARM_KEYPRESS = "alarm_keypress"
 ATTR_KEYPRESS = "keypress"
-ALARM_KEYPRESS_SCHEMA = vol.Schema({vol.Required(ATTR_KEYPRESS): cv.string})
+ALARM_KEYPRESS_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID, default=[]): cv.entity_ids,
+        vol.Required(ATTR_KEYPRESS): cv.string,
+    }
+)
 
 
 async def async_setup_entry(
@@ -64,29 +70,15 @@ async def async_setup_entry(
     )
     async_add_entities([entity])
 
-    # def alarm_toggle_chime_handler(service):
-    #     """Register toggle chime handler."""
-    #     code = service.data.get(ATTR_CODE)
-    #     entity.alarm_toggle_chime(code)
+    platform = entity_platform.current_platform.get()
 
-    # hass.services.register(
-    #     DOMAIN,
-    #     SERVICE_ALARM_TOGGLE_CHIME,
-    #     alarm_toggle_chime_handler,
-    #     schema=ALARM_TOGGLE_CHIME_SCHEMA,
-    # )
+    platform.async_register_entity_service(
+        SERVICE_ALARM_TOGGLE_CHIME, ALARM_TOGGLE_CHIME_SCHEMA, "alarm_toggle_chime",
+    )
 
-    # def alarm_keypress_handler(service):
-    #     """Register keypress handler."""
-    #     keypress = service.data[ATTR_KEYPRESS]
-    #     entity.alarm_keypress(keypress)
-
-    # hass.services.register(
-    #     DOMAIN,
-    #     SERVICE_ALARM_KEYPRESS,
-    #     alarm_keypress_handler,
-    #     schema=ALARM_KEYPRESS_SCHEMA,
-    # )
+    platform.async_register_entity_service(
+        SERVICE_ALARM_KEYPRESS, ALARM_KEYPRESS_SCHEMA, "alarm_keypress",
+    )
 
 
 class AlarmDecoderAlarmPanel(AlarmControlPanelEntity):
