@@ -24,10 +24,7 @@ from .const import (  # pylint: disable=unused-import
     CONF_ZONE_NUMBER,
     CONF_ZONE_RFID,
     CONF_ZONE_TYPE,
-    DEFAULT_ALT_NIGHT_MODE,
     DEFAULT_ARM_OPTIONS,
-    DEFAULT_AUTO_BYPASS,
-    DEFAULT_CODE_ARM_REQUIRED,
     DEFAULT_DEVICE_BAUD,
     DEFAULT_DEVICE_HOST,
     DEFAULT_DEVICE_PATH,
@@ -50,6 +47,7 @@ class AlarmDecoderFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a AlarmDecoder config flow."""
 
     VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
     def __init__(self):
         """Initialize AlarmDecoder ConfigFlow."""

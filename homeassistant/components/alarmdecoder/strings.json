@@ -43,13 +43,13 @@
         "title": "Configure AlarmDecoder",
         "description": "Enter details to add/update a zone. To delete a zone, enter the zone number and leave Zone Name blank. Restart Home Assistant for zone changes to take effect.",
         "data": {
-          "number": "Zone Number",
-          "name": "Zone Name",
-          "type": "Zone Type",
-          "rfid": "RF Serial",
-          "loop": "RF Loop",
-          "relayaddr": "Relay Address",
-          "relaychan": "Relay Channel"
+          "zone_number": "Zone Number",
+          "zone_name": "Zone Name",
+          "zone_type": "Zone Type",
+          "zone_rfid": "RF Serial",
+          "zone_loop": "RF Loop",
+          "zone_relayaddr": "Relay Address",
+          "zone_relaychan": "Relay Channel"
         }
       }
     },

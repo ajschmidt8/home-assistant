@@ -33,6 +33,7 @@ from .const import (
     DEFAULT_ARM_OPTIONS,
     DOMAIN,
     OPTIONS_ARM,
+    SIGNAL_OPTIONS_UPDATE,
     SIGNAL_PANEL_MESSAGE,
 )
 
@@ -112,6 +113,18 @@ class AlarmDecoderAlarmPanel(AlarmControlPanelEntity):
                 SIGNAL_PANEL_MESSAGE, self._message_callback
             )
         )
+        self.async_on_remove(
+            self.hass.helpers.dispatcher.async_dispatcher_connect(
+                SIGNAL_OPTIONS_UPDATE, self._async_update_options,
+            )
+        )
+
+    async def _async_update_options(self, entry: ConfigEntry):
+        """Options update handler."""
+        updated_arm_options = entry.options[OPTIONS_ARM]
+        self._alt_night_mode = updated_arm_options[CONF_ALT_NIGHT_MODE]
+        self._auto_bypass = updated_arm_options[CONF_AUTO_BYPASS]
+        self._code_arm_required = updated_arm_options[CONF_CODE_ARM_REQUIRED]
 
     def _message_callback(self, message):
         """Handle received messages."""

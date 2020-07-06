@@ -25,6 +25,7 @@ from .const import (
     OPTIONS_ZONES,
     PROTOCOL_SERIAL,
     PROTOCOL_SOCKET,
+    SIGNAL_OPTIONS_UPDATE,
     SIGNAL_PANEL_MESSAGE,
     SIGNAL_REL_MESSAGE,
     SIGNAL_RFX_MESSAGE,
@@ -33,6 +34,11 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+async def async_setup(hass, config):
+    """Set up for the AlarmDecoder devices."""
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool:
@@ -141,4 +147,4 @@ async def async_unload_entry(hass: HomeAssistantType, entry: ConfigEntry):
 async def _update_listener(hass: HomeAssistantType, entry: ConfigEntry):
     """Handle options update."""
     print("updated! :", entry.as_dict())
-    # async_dispatcher_send(hass, f"-{entry.unique_id}", entry.options)
+    async_dispatcher_send(hass, SIGNAL_OPTIONS_UPDATE, entry)
