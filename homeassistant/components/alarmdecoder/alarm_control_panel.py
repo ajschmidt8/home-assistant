@@ -26,13 +26,14 @@ from homeassistant.helpers import entity_platform
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import DATA_AD, SIGNAL_PANEL_MESSAGE
 from .const import (
     CONF_ALT_NIGHT_MODE,
     CONF_AUTO_BYPASS,
     CONF_CODE_ARM_REQUIRED,
     DEFAULT_ARM_OPTIONS,
+    DOMAIN,
     OPTIONS_ARM,
+    SIGNAL_PANEL_MESSAGE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -186,11 +187,11 @@ class AlarmDecoderAlarmPanel(AlarmControlPanelEntity):
     def alarm_disarm(self, code=None):
         """Send disarm command."""
         if code:
-            self.hass.data[DATA_AD].send(f"{code!s}1")
+            self.hass.data[DOMAIN].send(f"{code!s}1")
 
     def alarm_arm_away(self, code=None):
         """Send arm away command."""
-        self.hass.data[DATA_AD].arm_away(
+        self.hass.data[DOMAIN].arm_away(
             code=code,
             code_arm_required=self._code_arm_required,
             auto_bypass=self._auto_bypass,
@@ -198,7 +199,7 @@ class AlarmDecoderAlarmPanel(AlarmControlPanelEntity):
 
     def alarm_arm_home(self, code=None):
         """Send arm home command."""
-        self.hass.data[DATA_AD].arm_home(
+        self.hass.data[DOMAIN].arm_home(
             code=code,
             code_arm_required=self._code_arm_required,
             auto_bypass=self._auto_bypass,
@@ -206,7 +207,7 @@ class AlarmDecoderAlarmPanel(AlarmControlPanelEntity):
 
     def alarm_arm_night(self, code=None):
         """Send arm night command."""
-        self.hass.data[DATA_AD].arm_night(
+        self.hass.data[DOMAIN].arm_night(
             code=code,
             code_arm_required=self._code_arm_required,
             alt_night_mode=self._alt_night_mode,
@@ -216,9 +217,9 @@ class AlarmDecoderAlarmPanel(AlarmControlPanelEntity):
     def alarm_toggle_chime(self, code=None):
         """Send toggle chime command."""
         if code:
-            self.hass.data[DATA_AD].send(f"{code!s}9")
+            self.hass.data[DOMAIN].send(f"{code!s}9")
 
     def alarm_keypress(self, keypress):
         """Send custom keypresses."""
         if keypress:
-            self.hass.data[DATA_AD].send(keypress)
+            self.hass.data[DOMAIN].send(keypress)

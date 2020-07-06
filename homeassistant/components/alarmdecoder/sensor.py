@@ -5,7 +5,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import SIGNAL_PANEL_MESSAGE
+from .const import SIGNAL_PANEL_MESSAGE
 
 _LOGGER = logging.getLogger(__name__)
 

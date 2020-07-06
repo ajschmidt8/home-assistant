@@ -5,22 +5,21 @@ from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import (
+from .const import (
     CONF_RELAY_ADDR,
     CONF_RELAY_CHAN,
     CONF_ZONE_LOOP,
     CONF_ZONE_NAME,
+    CONF_ZONE_NUMBER,
     CONF_ZONE_RFID,
     CONF_ZONE_TYPE,
-    CONF_ZONES,
+    DEFAULT_ZONE_OPTIONS,
+    OPTIONS_ZONES,
     SIGNAL_REL_MESSAGE,
     SIGNAL_RFX_MESSAGE,
     SIGNAL_ZONE_FAULT,
     SIGNAL_ZONE_RESTORE,
-    ZONE_SCHEMA,
 )
-
-from .const import CONF_ZONE_NUMBER, DEFAULT_ZONE_OPTIONS, OPTIONS_ZONES
 
 _LOGGER = logging.getLogger(__name__)
 
