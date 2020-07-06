@@ -1,20 +1,23 @@
 """Support for AlarmDecoder sensors (Shows Panel Display)."""
 import logging
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.typing import HomeAssistantType
 
 from . import SIGNAL_PANEL_MESSAGE
 
 _LOGGER = logging.getLogger(__name__)
 
 
-def setup_platform(hass, config, add_entities, discovery_info=None):
-    """Set up for AlarmDecoder sensor devices."""
-    _LOGGER.debug("AlarmDecoderSensor: setup_platform")
+async def async_setup_entry(
+    hass: HomeAssistantType, entry: ConfigEntry, async_add_entities
+):
+    """Set up for AlarmDecoder sensor."""
+    print("sensor ENTRY!", entry.as_dict())
 
-    device = AlarmDecoderSensor(hass)
-
-    add_entities([device])
+    entity = AlarmDecoderSensor(hass=hass)
+    async_add_entities([entity])
 
 
 class AlarmDecoderSensor(Entity):

@@ -18,7 +18,6 @@ from homeassistant.util import dt as dt_util
 
 from .const import DEFAULT_DEVICE_PORT, DOMAIN, PROTOCOL_SERIAL, PROTOCOL_SOCKET
 
-
 _LOGGER = logging.getLogger(__name__)
 
 DATA_AD = "alarmdecoder"
@@ -240,17 +239,6 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool
     config = entry.data
     restart = False
     protocol = config[CONF_PROTOCOL]
-    # device = conf[CONF_DEVICE]
-    # display = conf[CONF_PANEL_DISPLAY]
-    # auto_bypass = conf[CONF_AUTO_BYPASS]
-    # code_arm_required = conf[CONF_CODE_ARM_REQUIRED]
-    # zones = conf.get(CONF_ZONES)
-
-    # device_type = device[CONF_DEVICE_TYPE]
-    # host = DEFAULT_DEVICE_HOST
-    # port = DEFAULT_DEVICE_PORT
-    # path = DEFAULT_DEVICE_PATH
-    # baud = DEFAULT_DEVICE_BAUD
 
     def stop_alarmdecoder(event):
         """Handle the shutdown of AlarmDecoder."""
@@ -325,24 +313,16 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool
 
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, stop_alarmdecoder)
 
-    for component in ["alarm_control_panel"]:
+    for component in ["alarm_control_panel", "sensor"]:
         hass.async_create_task(
             hass.config_entries.async_forward_entry_setup(entry, component)
         )
 
-    # load_platform(
-    #     hass,
-    #     "alarm_control_panel",
-    #     DOMAIN,
-    #     {CONF_AUTO_BYPASS: auto_bypass, CONF_CODE_ARM_REQUIRED: code_arm_required},
-    #     config,
-    # )
+    # if display:
+    #     load_platform(hass, "sensor", DOMAIN, conf, config)
 
     # if zones:
     #     load_platform(hass, "binary_sensor", DOMAIN, {CONF_ZONES: zones}, config)
-
-    # if display:
-    #     load_platform(hass, "sensor", DOMAIN, conf, config)
 
     return True
 

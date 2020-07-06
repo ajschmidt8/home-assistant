@@ -26,7 +26,7 @@ from homeassistant.helpers import entity_platform
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import DATA_AD, DOMAIN, SIGNAL_PANEL_MESSAGE
+from . import DATA_AD, SIGNAL_PANEL_MESSAGE
 from .const import (
     CONF_ALT_NIGHT_MODE,
     CONF_AUTO_BYPASS,
