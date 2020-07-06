@@ -78,10 +78,10 @@ class AlarmDecoderBinarySensor(BinarySensorEntity):
         self._state = None
         self._name = zone_name
         self._rfid = zone_rfid
-        self._loop = zone_loop
+        self._loop = int(zone_loop) if zone_loop else None
         self._rfstate = None
-        self._relay_addr = relay_addr
-        self._relay_chan = relay_chan
+        self._relay_addr = int(relay_addr) if relay_addr else None
+        self._relay_chan = int(relay_chan) if relay_chan else None
 
     async def async_added_to_hass(self):
         """Register callbacks."""
