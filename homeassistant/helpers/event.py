@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta
 import functools as ft
 import logging
+import time
 from typing import Any, Awaitable, Callable, Dict, Iterable, Optional, Union
 
 import attr
@@ -71,10 +72,16 @@ def async_track_state_change(
 
     Returns a function that can be called to remove the listener.
 
+    If entity_ids are not MATCH_ALL along with from_state and to_state
+    being None, async_track_state_change_event should be used instead
+    as it is slightly faster.
+
     Must be run within the event loop.
     """
-    match_from_state = process_state_match(from_state)
-    match_to_state = process_state_match(to_state)
+    if from_state is not None:
+        match_from_state = process_state_match(from_state)
+    if to_state is not None:
+        match_to_state = process_state_match(to_state)
 
     # Ensure it is a lowercase list with entity ids we want to match on
     if entity_ids == MATCH_ALL:
@@ -87,21 +94,27 @@ def async_track_state_change(
     @callback
     def state_change_listener(event: Event) -> None:
         """Handle specific state changes."""
-        old_state = event.data.get("old_state")
-        if old_state is not None:
-            old_state = old_state.state
+        if from_state is not None:
+            old_state = event.data.get("old_state")
+            if old_state is not None:
+                old_state = old_state.state
 
-        new_state = event.data.get("new_state")
-        if new_state is not None:
-            new_state = new_state.state
+            if not match_from_state(old_state):
+                return
+        if to_state is not None:
+            new_state = event.data.get("new_state")
+            if new_state is not None:
+                new_state = new_state.state
 
-        if match_from_state(old_state) and match_to_state(new_state):
-            hass.async_run_job(
-                action,
-                event.data.get("entity_id"),
-                event.data.get("old_state"),
-                event.data.get("new_state"),
-            )
+            if not match_to_state(new_state):
+                return
+
+        hass.async_run_job(
+            action,
+            event.data.get("entity_id"),
+            event.data.get("old_state"),
+            event.data.get("new_state"),
+        )
 
     if entity_ids != MATCH_ALL:
         # If we have a list of entity ids we use
@@ -316,26 +329,21 @@ def async_track_point_in_utc_time(
     point_in_time = dt_util.as_utc(point_in_time)
 
     @callback
-    def point_in_time_listener(event: Event) -> None:
+    def point_in_time_listener() -> None:
         """Listen for matching time_changed events."""
-        now = event.data[ATTR_NOW]
+        hass.async_run_job(action, point_in_time)
 
-        if now < point_in_time or hasattr(point_in_time_listener, "run"):
-            return
+    cancel_callback = hass.loop.call_at(
+        hass.loop.time() + point_in_time.timestamp() - time.time(),
+        point_in_time_listener,
+    )
 
-        # Set variable so that we will never run twice.
-        # Because the event bus might have to wait till a thread comes
-        # available to execute this listener it might occur that the
-        # listener gets lined up twice to be executed. This will make
-        # sure the second time it does nothing.
-        setattr(point_in_time_listener, "run", True)
-        async_unsub()
+    @callback
+    def unsub_point_in_time_listener() -> None:
+        """Cancel the call_later."""
+        cancel_callback.cancel()
 
-        hass.async_run_job(action, now)
-
-    async_unsub = hass.bus.async_listen(EVENT_TIME_CHANGED, point_in_time_listener)
-
-    return async_unsub
+    return unsub_point_in_time_listener
 
 
 track_point_in_utc_time = threaded_listener_factory(async_track_point_in_utc_time)
@@ -569,5 +577,5 @@ def process_state_match(
     if isinstance(parameter, str) or not hasattr(parameter, "__iter__"):
         return lambda state: state == parameter
 
-    parameter_tuple = tuple(parameter)
-    return lambda state: state in parameter_tuple
+    parameter_set = set(parameter)
+    return lambda state: state in parameter_set
