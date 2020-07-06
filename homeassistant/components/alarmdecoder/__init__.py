@@ -16,7 +16,14 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.util import dt as dt_util
 
-from .const import DEFAULT_DEVICE_PORT, DOMAIN, PROTOCOL_SERIAL, PROTOCOL_SOCKET
+from .const import (
+    DEFAULT_DEVICE_PORT,
+    DEFAULT_ZONE_OPTIONS,
+    DOMAIN,
+    OPTIONS_ZONES,
+    PROTOCOL_SERIAL,
+    PROTOCOL_SOCKET,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -236,9 +243,11 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool
     _LOGGER.error("entry: %s", entry.as_dict())
     entry.add_update_listener(_update_listener)
 
-    config = entry.data
+    ad_connection = entry.data
     restart = False
-    protocol = config[CONF_PROTOCOL]
+    protocol = ad_connection[CONF_PROTOCOL]
+    zones = entry.options.get(OPTIONS_ZONES, DEFAULT_ZONE_OPTIONS)
+    _LOGGER.error("zones: %s", zones)
 
     def stop_alarmdecoder(event):
         """Handle the shutdown of AlarmDecoder."""
@@ -291,13 +300,13 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool
         hass.helpers.dispatcher.dispatcher_send(SIGNAL_REL_MESSAGE, message)
 
     controller = False
-    baud = config[CONF_DEVICE_BAUD]
+    baud = ad_connection[CONF_DEVICE_BAUD]
     if protocol == PROTOCOL_SOCKET:
-        host = config[CONF_HOST]
-        port = config[CONF_DEVICE_PORT]
+        host = ad_connection[CONF_HOST]
+        port = ad_connection[CONF_DEVICE_PORT]
         controller = AdExt(SocketDevice(interface=(host, port)))
     if protocol == PROTOCOL_SERIAL:
-        path = config[CONF_DEVICE_PATH]
+        path = ad_connection[CONF_DEVICE_PATH]
         controller = AdExt(SerialDevice(interface=path))
 
     controller.on_message += handle_message
@@ -318,11 +327,10 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool
             hass.config_entries.async_forward_entry_setup(entry, component)
         )
 
-    # if display:
-    #     load_platform(hass, "sensor", DOMAIN, conf, config)
-
-    # if zones:
-    #     load_platform(hass, "binary_sensor", DOMAIN, {CONF_ZONES: zones}, config)
+    if zones:
+        hass.async_create_task(
+            hass.config_entries.async_forward_entry_setup(entry, "binary_sensor")
+        )
 
     return True
 

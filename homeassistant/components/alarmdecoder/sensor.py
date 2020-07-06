@@ -18,6 +18,7 @@ async def async_setup_entry(
 
     entity = AlarmDecoderSensor(hass=hass)
     async_add_entities([entity])
+    return True
 
 
 class AlarmDecoderSensor(Entity):

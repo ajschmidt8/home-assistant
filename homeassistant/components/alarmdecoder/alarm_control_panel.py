@@ -80,6 +80,8 @@ async def async_setup_entry(
         SERVICE_ALARM_KEYPRESS, ALARM_KEYPRESS_SCHEMA, "alarm_keypress",
     )
 
+    return True
+
 
 class AlarmDecoderAlarmPanel(AlarmControlPanelEntity):
     """Representation of an AlarmDecoder-based alarm panel."""

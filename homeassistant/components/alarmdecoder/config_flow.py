@@ -32,7 +32,7 @@ from .const import (  # pylint: disable=unused-import
     DEFAULT_DEVICE_HOST,
     DEFAULT_DEVICE_PATH,
     DEFAULT_DEVICE_PORT,
-    DEFAULT_ZONES_OPTIONS,
+    DEFAULT_ZONE_OPTIONS,
     DEFAULT_ZONE_TYPE,
     DOMAIN,
     OPTIONS_ARM,
@@ -141,7 +141,7 @@ class AlarmDecoderOptionsFlowHandler(config_entries.OptionsFlow):
         """Initialize AlarmDecoder options flow."""
         self.arm_options = config_entry.options.get(OPTIONS_ARM, DEFAULT_ARM_OPTIONS,)
         self.zone_options = config_entry.options.get(
-            OPTIONS_ZONES, DEFAULT_ZONES_OPTIONS
+            OPTIONS_ZONES, DEFAULT_ZONE_OPTIONS
         )
 
     async def async_step_init(self, user_input=None):
