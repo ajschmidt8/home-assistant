@@ -1,4 +1,5 @@
 """Support for AlarmDecoder devices."""
+import asyncio
 from datetime import timedelta
 import logging
 
@@ -35,6 +36,8 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+RESTART = False
+
 
 async def async_setup(hass, config):
     """Set up for the AlarmDecoder devices."""
@@ -48,21 +51,22 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool
     entry.add_update_listener(_update_listener)
 
     ad_connection = entry.data
-    restart = False
     protocol = ad_connection[CONF_PROTOCOL]
     zones = entry.options.get(OPTIONS_ZONES, DEFAULT_ZONE_OPTIONS)
     _LOGGER.error("zones: %s", zones)
 
     def stop_alarmdecoder(event):
         """Handle the shutdown of AlarmDecoder."""
+        if not hass.data.get(DOMAIN):
+            return
         _LOGGER.debug("Shutting down alarmdecoder")
-        nonlocal restart
-        restart = False
+        global RESTART
+        RESTART = False
         controller.close()
 
     def open_connection(now=None):
         """Open a connection to AlarmDecoder."""
-        nonlocal restart
+        global RESTART
         try:
             controller.open(baud)
         except NoDeviceError:
@@ -72,14 +76,14 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool
             )
             return
         _LOGGER.debug("Established a connection with the alarmdecoder")
-        restart = True
+        RESTART = True
 
     def handle_closed_connection(event):
         """Restart after unexpected loss of connection."""
-        nonlocal restart
-        if not restart:
+        global RESTART
+        if not RESTART:
             return
-        restart = False
+        RESTART = False
         _LOGGER.warning("AlarmDecoder unexpectedly lost connection")
         hass.add_job(open_connection)
 
@@ -126,14 +130,9 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool
 
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, stop_alarmdecoder)
 
-    for component in ["alarm_control_panel", "sensor"]:
+    for component in _get_platforms(entry):
         hass.async_create_task(
             hass.config_entries.async_forward_entry_setup(entry, component)
-        )
-
-    if zones:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(entry, "binary_sensor")
         )
 
     return True
@@ -142,6 +141,35 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool
 async def async_unload_entry(hass: HomeAssistantType, entry: ConfigEntry):
     """Unload a AlarmDecoder entry."""
     print("unloading")
+    global RESTART
+    RESTART = False
+
+    unload_ok = all(
+        await asyncio.gather(
+            *[
+                hass.config_entries.async_forward_entry_unload(entry, component)
+                for component in _get_platforms(entry)
+            ]
+        )
+    )
+
+    if not unload_ok:
+        return False
+
+    hass.data[DOMAIN].close()
+    hass.data.pop(DOMAIN)
+
+    return True
+
+
+def _get_platforms(entry: ConfigEntry):
+    """Get a list of platforms for loading/unloading AlarmDecoder."""
+    zones = entry.options.get(OPTIONS_ZONES, DEFAULT_ZONE_OPTIONS)
+    platforms = ["alarm_control_panel", "sensor"]
+    if zones:
+        platforms.append("binary_sensor")
+
+    return platforms
 
 
 async def _update_listener(hass: HomeAssistantType, entry: ConfigEntry):
