@@ -143,14 +143,15 @@ class AlarmDecoderOptionsFlowHandler(config_entries.OptionsFlow):
         self.zone_options = config_entry.options.get(
             OPTIONS_ZONES, DEFAULT_ZONE_OPTIONS
         )
+        self.selected_zone = None
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
         if user_input is not None:
             if user_input[EDIT_KEY] == EDIT_SETTINGS:
-                return await self.async_step_settings()
+                return await self.async_step_arm_settings()
             if user_input[EDIT_KEY] == EDIT_ZONES:
-                return await self.async_step_zone()
+                return await self.async_step_zone_select()
 
         return self.async_show_form(
             step_id="init",
@@ -163,8 +164,8 @@ class AlarmDecoderOptionsFlowHandler(config_entries.OptionsFlow):
             ),
         )
 
-    async def async_step_settings(self, user_input=None):
-        """Manage the settings."""
+    async def async_step_arm_settings(self, user_input=None):
+        """Arming options form."""
         if user_input is not None:
             return self.async_create_entry(
                 title="",
@@ -172,7 +173,7 @@ class AlarmDecoderOptionsFlowHandler(config_entries.OptionsFlow):
             )
 
         return self.async_show_form(
-            step_id="settings",
+            step_id="arm_settings",
             data_schema=vol.Schema(
                 {
                     vol.Optional(
@@ -190,34 +191,93 @@ class AlarmDecoderOptionsFlowHandler(config_entries.OptionsFlow):
             ),
         )
 
-    async def async_step_zone(self, user_input=None):
-        """Manage the options."""
+    async def async_step_zone_select(self, user_input=None):
+        """Zone selection form."""
+        errors = self._validate_zone_input(user_input)
+
+        if user_input is not None and not errors:
+            self.selected_zone = str(
+                int(user_input[CONF_ZONE_NUMBER])
+            )  # remove leading zeros
+            return await self.async_step_zone_details()
+
+        return self.async_show_form(
+            step_id="zone_select",
+            data_schema=vol.Schema({vol.Required(CONF_ZONE_NUMBER): str}),
+            errors=errors,
+        )
+
+    async def async_step_zone_details(self, user_input=None):
+        """Zone details form."""
         errors = self._validate_zone_input(user_input)
 
         if user_input is not None and not errors:
             zone_options = self.zone_options.copy()
-            zone_id = str(user_input[CONF_ZONE_NUMBER])
+            zone_id = self.selected_zone
             zone_options[zone_id] = user_input
+
+            # Delete zone entry if zone_name is omitted
             if CONF_ZONE_NAME not in zone_options[zone_id]:
                 zone_options.pop(zone_id)
+
             return self.async_create_entry(
                 title="",
                 data={OPTIONS_ARM: self.arm_options, OPTIONS_ZONES: zone_options},
             )
 
+        existing_zone_settings = self.zone_options.get(self.selected_zone, {})
+
         return self.async_show_form(
-            step_id="zone",
+            step_id="zone_details",
+            description_placeholders={CONF_ZONE_NUMBER: self.selected_zone},
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_ZONE_NUMBER): str,
-                    vol.Optional(CONF_ZONE_NAME): str,
-                    vol.Optional(CONF_ZONE_TYPE, default=DEFAULT_ZONE_TYPE): vol.In(
-                        DEVICE_CLASSES
-                    ),
-                    vol.Optional(CONF_ZONE_RFID): str,
-                    vol.Optional(CONF_ZONE_LOOP): str,
-                    vol.Optional(CONF_RELAY_ADDR,): str,
-                    vol.Optional(CONF_RELAY_CHAN,): str,
+                    vol.Optional(
+                        CONF_ZONE_NAME,
+                        description={
+                            "suggested_value": existing_zone_settings.get(
+                                CONF_ZONE_NAME
+                            )
+                        },
+                    ): str,
+                    vol.Optional(
+                        CONF_ZONE_TYPE,
+                        default=existing_zone_settings.get(
+                            CONF_ZONE_TYPE, DEFAULT_ZONE_TYPE
+                        ),
+                    ): vol.In(DEVICE_CLASSES),
+                    vol.Optional(
+                        CONF_ZONE_RFID,
+                        description={
+                            "suggested_value": existing_zone_settings.get(
+                                CONF_ZONE_RFID
+                            )
+                        },
+                    ): str,
+                    vol.Optional(
+                        CONF_ZONE_LOOP,
+                        description={
+                            "suggested_value": existing_zone_settings.get(
+                                CONF_ZONE_LOOP
+                            )
+                        },
+                    ): str,
+                    vol.Optional(
+                        CONF_RELAY_ADDR,
+                        description={
+                            "suggested_value": existing_zone_settings.get(
+                                CONF_RELAY_ADDR
+                            )
+                        },
+                    ): str,
+                    vol.Optional(
+                        CONF_RELAY_CHAN,
+                        description={
+                            "suggested_value": existing_zone_settings.get(
+                                CONF_RELAY_CHAN
+                            )
+                        },
+                    ): str,
                 }
             ),
             errors=errors,

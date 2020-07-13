@@ -34,7 +34,7 @@
           "edit_select": "Edit"
         }
       },
-      "settings": {
+      "arm_settings": {
         "title": "Configure AlarmDecoder",
         "data": {
           "auto_bypass": "Auto Bypass on Arm",
@@ -42,11 +42,17 @@
           "alt_night_mode": "Alternative Night Mode"
         }
       },
-      "zone": {
+      "zone_select": {
         "title": "Configure AlarmDecoder",
-        "description": "Enter details to add/update a zone. To delete a zone, enter the zone number and leave Zone Name blank. Restart Home Assistant for zone changes to take effect.",
+        "description": "Enter the zone number you'd like to to add, edit, or remove.",
         "data": {
-          "zone_number": "Zone Number",
+          "zone_number": "Zone Number"
+        }
+      },
+      "zone_details": {
+        "title": "Configure AlarmDecoder",
+        "description": "Enter details for zone {zone_number}. To delete zone {zone_number}, leave Zone Name blank. Restart Home Assistant for zone changes to take effect.",
+        "data": {
           "zone_name": "Zone Name",
           "zone_type": "Zone Type",
           "zone_rfid": "RF Serial",
