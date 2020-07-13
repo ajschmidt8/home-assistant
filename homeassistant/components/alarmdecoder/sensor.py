@@ -16,7 +16,7 @@ async def async_setup_entry(
     """Set up for AlarmDecoder sensor."""
     print("sensor ENTRY!", entry.as_dict())
 
-    entity = AlarmDecoderSensor(hass=hass)
+    entity = AlarmDecoderSensor()
     async_add_entities([entity])
     return True
 
@@ -24,7 +24,7 @@ async def async_setup_entry(
 class AlarmDecoderSensor(Entity):
     """Representation of an AlarmDecoder keypad."""
 
-    def __init__(self, hass):
+    def __init__(self):
         """Initialize the alarm panel."""
         self._display = ""
         self._state = None
