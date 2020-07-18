@@ -14,7 +14,6 @@ async def async_setup_entry(
     hass: HomeAssistantType, entry: ConfigEntry, async_add_entities
 ):
     """Set up for AlarmDecoder sensor."""
-    print("sensor ENTRY!", entry.as_dict())
 
     entity = AlarmDecoderSensor()
     async_add_entities([entity])

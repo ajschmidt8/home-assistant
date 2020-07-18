@@ -61,7 +61,6 @@ async def async_setup_entry(
     hass: HomeAssistantType, entry: ConfigEntry, async_add_entities
 ):
     """Set up for AlarmDecoder alarm panels."""
-    print("ENTRY!", entry.as_dict())
     options = entry.options
     arm_options = options.get(OPTIONS_ARM, DEFAULT_ARM_OPTIONS)
 

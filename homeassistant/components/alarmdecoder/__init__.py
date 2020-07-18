@@ -46,14 +46,10 @@ async def async_setup(hass, config):
 
 async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool:
     """Set up AlarmDecoder config flow."""
-    _LOGGER.error("we made it here")
-    _LOGGER.error("entry: %s", entry.as_dict())
     entry.add_update_listener(_update_listener)
 
     ad_connection = entry.data
     protocol = ad_connection[CONF_PROTOCOL]
-    zones = entry.options.get(OPTIONS_ZONES, DEFAULT_ZONE_OPTIONS)
-    _LOGGER.error("zones: %s", zones)
 
     def stop_alarmdecoder(event):
         """Handle the shutdown of AlarmDecoder."""
@@ -140,7 +136,6 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool
 
 async def async_unload_entry(hass: HomeAssistantType, entry: ConfigEntry):
     """Unload a AlarmDecoder entry."""
-    print("unloading")
     global RESTART
     RESTART = False
 
@@ -174,5 +169,5 @@ def _get_platforms(entry: ConfigEntry):
 
 async def _update_listener(hass: HomeAssistantType, entry: ConfigEntry):
     """Handle options update."""
-    print("updated! :", entry.as_dict())
+    _LOGGER.debug("AlarmDecoder options updated: %s", entry.as_dict()["options"])
     async_dispatcher_send(hass, SIGNAL_OPTIONS_UPDATE, entry)

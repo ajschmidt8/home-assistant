@@ -37,7 +37,6 @@ async def async_setup_entry(
     hass: HomeAssistantType, entry: ConfigEntry, async_add_entities
 ):
     """Set up for AlarmDecoder sensor."""
-    print("bin sensor ENTRY!", entry.as_dict())
 
     zones = entry.options.get(OPTIONS_ZONES, DEFAULT_ZONE_OPTIONS)
 

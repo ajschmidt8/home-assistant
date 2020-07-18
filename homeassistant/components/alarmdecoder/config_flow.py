@@ -1,6 +1,4 @@
 """Config flow for AlarmDecoder."""
-import socket
-
 from adext import AdExt
 from alarmdecoder.devices import SerialDevice, SocketDevice
 from alarmdecoder.util import NoDeviceError
@@ -52,7 +50,6 @@ class AlarmDecoderFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self):
         """Initialize AlarmDecoder ConfigFlow."""
         self.protocol = None
-        self.network_discovered = False
 
     @staticmethod
     @callback
@@ -69,16 +66,11 @@ class AlarmDecoderFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             self.protocol = user_input[CONF_PROTOCOL]
             return await self.async_step_protocol()
 
-        default_protocol = None
-        if await async_discover_alarmdecoder(self.hass):
-            self.network_discovered = True
-            default_protocol = PROTOCOL_SOCKET
-
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_PROTOCOL, default=default_protocol): vol.In(
+                    vol.Required(CONF_PROTOCOL): vol.In(
                         [PROTOCOL_SOCKET, PROTOCOL_SERIAL]
                     ),
                 }
@@ -112,12 +104,10 @@ class AlarmDecoderFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             except NoDeviceError:
                 errors["base"] = "service_unavailable"
 
-        host = DEFAULT_DEVICE_HOST if self.network_discovered else ""
-
         if self.protocol == PROTOCOL_SOCKET:
             schema = vol.Schema(
                 {
-                    vol.Required(CONF_HOST, default=host): str,
+                    vol.Required(CONF_HOST, default=DEFAULT_DEVICE_HOST): str,
                     vol.Required(CONF_PORT, default=DEFAULT_DEVICE_PORT): int,
                 }
             )
@@ -313,13 +303,3 @@ class AlarmDecoderOptionsFlowHandler(config_entries.OptionsFlow):
             errors[CONF_ZONE_LOOP] = "loop_range"
 
         return errors
-
-
-async def async_discover_alarmdecoder(hass):
-    """Discover AlarmDecoder address."""
-    try:
-        return await hass.async_add_executor_job(
-            socket.gethostbyname, DEFAULT_DEVICE_HOST
-        )
-    except socket.gaierror:
-        return None
