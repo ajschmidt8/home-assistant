@@ -1,6 +1,8 @@
 """Test the AlarmDecoder config flow."""
 from alarmdecoder.util import NoDeviceError
+
 from homeassistant import config_entries, data_entry_flow
+from homeassistant.components.alarmdecoder import config_flow
 from homeassistant.components.alarmdecoder.const import (
     CONF_ALT_NIGHT_MODE,
     CONF_AUTO_BYPASS,
@@ -14,16 +16,14 @@ from homeassistant.components.alarmdecoder.const import (
     CONF_ZONE_NUMBER,
     CONF_ZONE_RFID,
     CONF_ZONE_TYPE,
-    DOMAIN,
     DEFAULT_ARM_OPTIONS,
     DEFAULT_ZONE_OPTIONS,
+    DOMAIN,
     OPTIONS_ARM,
     OPTIONS_ZONES,
     PROTOCOL_SERIAL,
     PROTOCOL_SOCKET,
 )
-
-from homeassistant.components.alarmdecoder import config_flow
 from homeassistant.components.binary_sensor import DEVICE_CLASS_WINDOW
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_PROTOCOL
 from homeassistant.core import HomeAssistant
