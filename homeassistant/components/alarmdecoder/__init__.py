@@ -56,13 +56,13 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool
         if not hass.data.get(DOMAIN):
             return
         _LOGGER.debug("Shutting down alarmdecoder")
-        global RESTART
+        global RESTART  # pylint: disable=global-statement
         RESTART = False
         controller.close()
 
     def open_connection(now=None):
         """Open a connection to AlarmDecoder."""
-        global RESTART
+        global RESTART  # pylint: disable=global-statement
         try:
             controller.open(baud)
         except NoDeviceError:
@@ -76,7 +76,7 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool
 
     def handle_closed_connection(event):
         """Restart after unexpected loss of connection."""
-        global RESTART
+        global RESTART  # pylint: disable=global-statement
         if not RESTART:
             return
         RESTART = False
@@ -136,7 +136,7 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool
 
 async def async_unload_entry(hass: HomeAssistantType, entry: ConfigEntry):
     """Unload a AlarmDecoder entry."""
-    global RESTART
+    global RESTART  # pylint: disable=global-statement
     RESTART = False
 
     unload_ok = all(
