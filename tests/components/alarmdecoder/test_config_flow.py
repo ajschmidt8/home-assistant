@@ -23,6 +23,7 @@ from homeassistant.components.alarmdecoder.const import (
     PROTOCOL_SOCKET,
 )
 
+from homeassistant.components.alarmdecoder import config_flow
 from homeassistant.components.binary_sensor import DEVICE_CLASS_WINDOW
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_PROTOCOL
 from homeassistant.core import HomeAssistant
@@ -380,3 +381,16 @@ async def test_options_zone_flow_validation(hass: HomeAssistant):
             }
         },
     }
+
+
+async def test_one_config_allowed(hass):
+    """Test that only one AlarmDecoder configuration is allowed."""
+    flow = config_flow.AlarmDecoderFlowHandler()
+    flow.hass = hass
+
+    MockConfigEntry(domain=DOMAIN,).add_to_hass(hass)
+
+    result = await flow.async_step_user()
+
+    assert result["type"] == data_entry_flow.RESULT_TYPE_ABORT
+    assert result["reason"] == "single_instance_allowed"
