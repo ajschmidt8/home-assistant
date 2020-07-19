@@ -297,8 +297,10 @@ class AlarmDecoderOptionsFlowHandler(config_entries.OptionsFlow):
             errors[CONF_ZONE_LOOP] = "loop_rfid"
 
         # CONF_ZONE_LOOP must be 1-4
-        if CONF_ZONE_LOOP in zone_input and int(zone_input[CONF_ZONE_LOOP]) not in list(
-            range(1, 5)
+        if (
+            CONF_ZONE_LOOP in zone_input
+            and zone_input[CONF_ZONE_LOOP].isdigit()
+            and int(zone_input[CONF_ZONE_LOOP]) not in list(range(1, 5))
         ):
             errors[CONF_ZONE_LOOP] = "loop_range"
 
